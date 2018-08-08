@@ -26,5 +26,5 @@ func (hfc *FabricSetup) InvokeChainCode(channelName, chainCodeID, username strin
 		return []byte("Unable to invoke chaincode")
 	}
 	logger.Infof("Chaincode executed succesfully: %s\n", res)
-	return []byte("chaincode executed")
+	return res.Payload
 }

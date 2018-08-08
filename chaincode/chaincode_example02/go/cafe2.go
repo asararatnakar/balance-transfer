@@ -78,7 +78,8 @@ func (t *TestChaincode) add(stub shim.ChaincodeStubInterface, args []string) pb.
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	return shim.Success(nil)
+	msg := []byte("Successfully Added " + args[0] + " with balance of $" + args[1])
+	return shim.Success(msg)
 }
 
 // move : move money from one user to another
@@ -116,7 +117,8 @@ func (t *TestChaincode) move(stub shim.ChaincodeStubInterface, args []string) pb
 	}
 	logger.Infof(".................... transfered %d from %s to %s", bal, user1, user2)
 	logger.Infof("Updated balance after TX : %s = %d &  %s = %d", user1, Abal1, user2, Abal2)
-	return shim.Success(nil)
+	msg := []byte("Moved $" + args[2] + " from " + user1 + " to " + user2)
+	return shim.Success(msg)
 }
 
 func (t *TestChaincode) query(stub shim.ChaincodeStubInterface, args []string) pb.Response {
@@ -145,8 +147,8 @@ func (t *TestChaincode) delete(stub shim.ChaincodeStubInterface, args []string) 
 	if err != nil {
 		return shim.Error("Failed to delete user")
 	}
-
-	return shim.Success(nil)
+	msg := []byte("DELETED " + args[0] + " from the ledger...")
+	return shim.Success(msg)
 }
 
 func main() {

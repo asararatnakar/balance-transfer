@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -62,7 +63,52 @@ func main() {
 	r.Handle("/channels/{channelName}/instantiate", authMiddleware(http.HandlerFunc(instantiateCC))).Methods("POST")
 	r.Handle("/channels/{channelName}/chaincodes/{chaincodeName}", authMiddleware(http.HandlerFunc(invokeCC))).Methods("POST")
 	r.Handle("/channels/{channelName}/chaincodes/{chaincodeName}", authMiddleware(http.HandlerFunc(queryCC))).Methods("GET")
+	r.Handle("/channels/{channelName}/blocks", authMiddleware(http.HandlerFunc(queryBlkHeight))).Methods("GET")
+	r.Handle("/channels/{channelName}/blockByID", authMiddleware(http.HandlerFunc(queryBlkByID))).Methods("GET")
 	http.ListenAndServe(":4000", handlers.LoggingHandler(os.Stdout, r))
+}
+
+func queryBlkByID(w http.ResponseWriter, r *http.Request) {
+	log.Debug("==================== Q U E R Y   B L O C K  B Y  I D ====================")
+	type queryBlkCC struct {
+		Peer    string
+		BlockID string
+	}
+	type response struct {
+		res []byte
+	}
+	decoder := json.NewDecoder(r.Body)
+	body := queryBlkCC{}
+	decoder.Decode(&body)
+
+	vars := mux.Vars(r)
+	username := r.Header.Get("username")
+	orgName := r.Header.Get("orgName")
+
+	blkID, _ := strconv.ParseUint(body.BlockID, 10, 64)
+	res := hfc.QueryBlockByID(vars["channelName"], username, orgName, body.Peer, blkID)
+	w.Write(res)
+}
+
+func queryBlkHeight(w http.ResponseWriter, r *http.Request) {
+	log.Debug("==================== Q U E R Y   B L O C K S ====================")
+	type queryBlkCC struct {
+		Peer string
+	}
+	type response struct {
+		res []byte
+	}
+	decoder := json.NewDecoder(r.Body)
+	body := queryBlkCC{}
+	decoder.Decode(&body)
+
+	vars := mux.Vars(r)
+	username := r.Header.Get("username")
+	orgName := r.Header.Get("orgName")
+
+	res := hfc.QueryBlockHeight(vars["channelName"], username, orgName, body.Peer)
+	w.Write(res)
+
 }
 
 func instantiateCC(w http.ResponseWriter, r *http.Request) {
@@ -148,16 +194,15 @@ func channelCC(w http.ResponseWriter, r *http.Request) {
 	w.Write(res)
 }
 
-func queryCC(w http.ResponseWriter, r *http.Request){
+func queryCC(w http.ResponseWriter, r *http.Request) {
 	log.Debugf("--------------- Q U E R Y  C H A I N C O D E ---------------")
 
 	type queryCcBody struct {
-		Fcn string
+		Fcn  string
 		Args []string
 		Peer string
-		
 	}
-	type response struct{
+	type response struct {
 		res []byte
 	}
 	vars := mux.Vars(r)
@@ -167,7 +212,7 @@ func queryCC(w http.ResponseWriter, r *http.Request){
 	body := queryCcBody{}
 	decoder.Decode(&body)
 
-	res := hfc.QueryChainCode(vars["channelName"], vars["chaincodeName"], username, orgName, body.Fcn, utils.GetArgs(body.Args), body.Peer )
+	res := hfc.QueryChainCode(vars["channelName"], vars["chaincodeName"], username, orgName, body.Fcn, utils.GetArgs(body.Args), body.Peer)
 	w.Write(res)
 }
 

@@ -39,7 +39,7 @@ func (hfc *FabricSetup) Init() {
 	backendLeveled := logging.AddModuleLevel(backend)
 	backendLeveled.SetLevel(logging.DEBUG, "")
 	logging.SetBackend(backendLeveled, backendFormatter)
-	logger.Info("================ trying to create SDK instance ================")
+	logger.Info("================ Creating New SDK Instance ================")
 
 	//initializing SDK
 	var config = config.FromFile(hfc.ConfigFileName)
